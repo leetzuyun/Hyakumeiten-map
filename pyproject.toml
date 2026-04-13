@@ -1,0 +1,14 @@
+[project]
+name = "tabelog-map"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+requires-python = ">=3.13"
+dependencies = [
+    "beautifulsoup4>=4.14.3",
+    "folium>=0.20.0",
+    "googlemaps>=4.10.0",
+    "pandas>=3.0.2",
+    "pyarrow>=23.0.1",
+    "requests>=2.33.1",
+]
