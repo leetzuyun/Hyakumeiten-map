@@ -94,7 +94,7 @@ class GourmetApp:
         self.root.title("日本百名店地圖助手")
         self.root.geometry("600x500")
 
-        tk.Label(root, text="Tabelog 百名店資料管理 (Parquet 儲存)", font=('Arial', 14, 'bold')).pack(pady=10)
+        tk.Label(root, text="Tabelog 百名店資料管理", font=('Arial', 14, 'bold')).pack(pady=10)
         
         self.force_update_var = tk.BooleanVar(value=False)
         tk.Checkbutton(root, text="強制重新爬取 (忽略快取)", variable=self.force_update_var).pack()
@@ -226,8 +226,7 @@ class GourmetApp:
                 safe_name = name.replace("'", "&#39;").replace('"', '&quot;')
                 safe_addr = info.get('tabelog_address', '').replace("'", "&#39;").replace('"', '&quot;')
                 safe_category = str(food_category).replace("'", "&#39;").replace('"', '&quot;')
-                tabelog_url = info.get('tabelog_url', info.get('category_url', ''))
-                tabelog_link = f'<p><a href="{tabelog_url}" target="_blank" style="text-decoration:none;color:#1565C0;">檢視 Tabelog 詳細頁</a></p>' if tabelog_url else ''
+                google_link = f'<p><a href="https://www.google.com/maps/search/?api=1&query={lat},{lng}" target="_blank" style="text-decoration:none;color:#1565C0;">檢視 Google Maps</a></p>' if pd.notna(lat) and pd.notna(lng) else ''
                 
                 popup_html = f"""
                 <div style="font-family: Arial; width:240px;">
@@ -237,7 +236,7 @@ class GourmetApp:
                     <hr style="margin:5px 0;">
                     <p style="margin:0 0 5px 0;"><b>Tabelog 評分：</b>⭐ {info.get('tabelog_score','無')}</p>
                     <p style="margin:0 0 5px 0;"><b>Google 評分：</b>⭐ {info.get('google_rating','無')} ({info.get('reviews',0)})</p>
-                    {tabelog_link}
+                    {google_link}
                 </div>
                 """
                 folium.Marker(
