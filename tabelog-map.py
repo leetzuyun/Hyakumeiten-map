@@ -91,7 +91,7 @@ def get_google_data(name, address, cache, force=False):
 class GourmetApp:
     def __init__(self, root):
         self.root = root
-        self.root.title("日本百名店地圖助手 (自動同步版)")
+        self.root.title("日本百名店地圖助手")
         self.root.geometry("600x500")
 
         tk.Label(root, text="Tabelog 百名店資料管理 (Parquet 儲存)", font=('Arial', 14, 'bold')).pack(pady=10)
@@ -198,16 +198,30 @@ class GourmetApp:
         self.log(f"📍 正在從 Parquet 生成地圖 (共 {len(cache)} 筆)...")
         m = folium.Map(location=[35.6895, 139.6917], zoom_start=6, tiles='CartoDB positron')
         category_layers = {}
+        categories_to_process = []
 
+        # 收集所有類別
         for name, info in cache.items():
             lat, lng = info.get('lat'), info.get('lng')
             if pd.notna(lat) and pd.notna(lng):
                 url = info.get('category_url', 'others')
                 food_category = info.get('category', url.rstrip('/').split('/')[-1])
-
                 if food_category not in category_layers:
-                    feature_group = folium.FeatureGroup(name=f"🍴 {food_category}", show=False).add_to(m)
-                    category_layers[food_category] = MarkerCluster().add_to(feature_group)
+                    category_layers[food_category] = []
+                    categories_to_process.append(food_category)
+        
+        # 按字母排序
+        categories_to_process.sort()
+        for food_category in categories_to_process:
+            feature_group = folium.FeatureGroup(name=f"🍴 {food_category}", show=False).add_to(m)
+            category_layers[food_category] = MarkerCluster().add_to(feature_group)
+        
+        # 加入標記
+        for name, info in cache.items():
+            lat, lng = info.get('lat'), info.get('lng')
+            if pd.notna(lat) and pd.notna(lng):
+                url = info.get('category_url', 'others')
+                food_category = info.get('category', url.rstrip('/').split('/')[-1])
 
                 safe_name = name.replace("'", "&#39;").replace('"', '&quot;')
                 safe_addr = info.get('tabelog_address', '').replace("'", "&#39;").replace('"', '&quot;')
