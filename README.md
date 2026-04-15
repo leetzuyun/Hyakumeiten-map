@@ -30,3 +30,4 @@ The interactive map displays:
 - **Cuisine filters** to explore by food type (default unchecked)
 - **Restaurant details** including ratings, address, and Tabelog links
 - **Multiple base map options** including Google Street View
+- **TEST**
