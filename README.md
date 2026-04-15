@@ -12,7 +12,7 @@ pip install -r requirements.txt
 ```
 
 ### Configuration
-Set your Google Maps API key in the script (e.g., `GOOGLE_API_KEY = 'your_api_key_here'`).
+Update your Google Maps API key in the script (e.g., `GOOGLE_API_KEY = 'your_api_key_here'`).
 
 ### Run the Application
 ```bash
