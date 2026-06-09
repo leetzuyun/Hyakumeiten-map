@@ -170,10 +170,17 @@ def run_crawler(force=False):
             
             cat_resp = session.get(url, headers=headers, timeout=15)
             cat_soup = BeautifulSoup(cat_resp.text, 'html.parser')
-            imgs = cat_soup.find_all('img', alt=True)
+            # imgs = cat_soup.find_all('img', alt=True)
             
-            for img in imgs:
-                name = zen_to_han(img['alt'].strip())
+            # for img in imgs:
+            #     name = zen_to_han(img['alt'].strip())
+            items = cat_soup.select('li.list-rst')
+
+            for item in items:
+                name_tag = item.select_one('.list-rst__rst-name')
+                if not name_tag:
+                    continue
+                name = zen_to_han(name_tag.text.strip())
                 if not name or "百名店" in name or len(name) < 2: 
                     continue
                 
@@ -242,7 +249,6 @@ if __name__ == "__main__":
     # 步驟 1: 執行爬蟲與快取更新 (若需要強制重新抓取可改為 run_crawler(force=True))
     run_crawler(force=False)
     
-    # 步驟 2: 轉換成供網頁前端讀取的 JSON 格式
     export_to_json()
     
     print("\n🎉 執行完畢！你現在可以將 restaurants_data.json commit 並 push 到 git 上，讓 Netlify 自動更新了。")

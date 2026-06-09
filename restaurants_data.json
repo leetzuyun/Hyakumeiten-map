@@ -3806,17 +3806,6 @@
     "tabelog_url": "nan"
   },
   {
-    "name": "食べログ",
-    "lat": 25.0301762,
-    "lng": 121.5229977,
-    "tabelog_score": "4.65",
-    "google_rating": "4.7",
-    "reviews": 336,
-    "address": "無地址資訊",
-    "category": "italian_east",
-    "tabelog_url": "nan"
-  },
-  {
     "name": "焼肉冷麺だいじゅ",
     "lat": 35.7325446,
     "lng": 139.7279639,

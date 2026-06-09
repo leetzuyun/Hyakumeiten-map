@@ -574,9 +574,10 @@ const map = L.map('map', {
 });
 
 // 底圖（OpenStreetMap，可離線快取）
-L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+L.tileLayer('https://{s}.basemaps.cartocdn.com/voyager/{z}/{x}/{y}{r}.png', {
   maxZoom: 19,
-  attribution: '© OpenStreetMap',
+  attribution: '&copy; OpenStreetMap & CARTO',
+  subdomains: 'abcd',
 }).addTo(map);
 
 // 縮放按鈕放右下
