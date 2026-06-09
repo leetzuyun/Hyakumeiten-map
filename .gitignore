@@ -1,10 +1,11 @@
 # Python-generated files
 __pycache__/
 *.pyc
-*.parquet
-*.json
-*.html
-.env
+lib/
+# *.parquet
+# *.json
+# *.html
+# .env
 
 # Virtual environments
 .venv
