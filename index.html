@@ -567,22 +567,22 @@ const CAT_EMOJI = {
 function catEmoji(cat) { return CAT_EMOJI[cat] || '🍴'; }
 
 /* ── 地圖初始化 ── */
-// 1. 設定初始中心點(經緯度)與縮放等級 (zoom: 5 為顯示全日本概覽)
 const map = L.map('map', {
   zoomControl: false,
   attributionControl: false,
   tap: true,
-}).setView([36.0, 138.0], 5); 
+});
 
-// 2. 加入 Carto Voyager 底圖
-L.tileLayer('https://{s}.basemaps.cartocdn.com/voyager/{z}/{x}/{y}{r}.png', {
+// 底圖（OpenStreetMap，可離線快取）
+L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
   maxZoom: 19,
-  attribution: '© OpenStreetMap & CARTO',
-  subdomains: 'abcd',
+  attribution: '© OpenStreetMap',
 }).addTo(map);
 
-// 縮放按鈕與 Attribution
+// 縮放按鈕放右下
 L.control.zoom({ position: 'bottomright' }).addTo(map);
+
+// Attribution 迷你化
 L.control.attribution({ prefix: false, position: 'bottomleft' }).addTo(map);
 
 const clusterGroup = L.markerClusterGroup({
