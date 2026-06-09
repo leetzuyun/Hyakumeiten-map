@@ -174,13 +174,11 @@ def run_crawler(force=False):
             
             # for img in imgs:
             #     name = zen_to_han(img['alt'].strip())
-            items = cat_soup.select('li.list-rst')
+            name_tags = cat_soup.select('.hyakumeiten-shop__name')
 
-            for item in items:
-                name_tag = item.select_one('.list-rst__rst-name')
-                if not name_tag:
-                    continue
-                name = zen_to_han(name_tag.text.strip())
+            for name_tag in name_tags:
+                raw_name = name_tag.get_text(strip=True)
+                name = zen_to_han(raw_name)
                 if not name or "百名店" in name or len(name) < 2: 
                     continue
                 
@@ -189,10 +187,12 @@ def run_crawler(force=False):
                 
                 if needs_tabelog:
                     try:
-                        a_tag = img.find_parent('a')
+                        a_tag = name_tag.find_parent('a')
+
                         if a_tag and a_tag.has_attr('href'):
+                            target_url = a_tag['href']
                             print(f"  > 爬取 Tabelog: {name}")
-                            d_resp = session.get(a_tag['href'], headers=headers, timeout=15)
+                            d_resp = session.get(target_url, headers=headers, timeout=15)
                             d_soup = BeautifulSoup(d_resp.text, 'html.parser')
                             
                             score = "無"
@@ -203,14 +203,14 @@ def run_crawler(force=False):
                             
                             addr = "無地址"
                             addr_tag = d_soup.find('p', class_='rstinfo-table__address')
-                            if addr_tag: addr = zen_to_han(addr_tag.text.strip())
+                            if addr_tag: addr = zen_to_han(addr_tag.get_text(strip=True))
                             
                             if name not in cache: cache[name] = {}
                             cache[name].update({
                                 'tabelog_score': score,
                                 'tabelog_address': addr,
                                 'category_url': url,
-                                'tabelog_url': urljoin(BASE_URL, a_tag['href'])
+                                'tabelog_url': urljoin(BASE_URL, target_url) 
                             })
                             
                             print(f"  > 🔍 同步搜尋 Google Maps 資訊...")
@@ -228,16 +228,20 @@ def run_crawler(force=False):
                         save_local_data(cache)
 
         # 檢查已過期（落榜）的店家
-        stale = [name for name in list(cache.keys()) if name not in scraped_names]
-        if stale:
-            print(f"\n🗑️ 發現 {len(stale)} 間已從百名店移除的店家：")
-            for name in stale:
-                print(f"  - {name}")
-                del cache[name]
-            save_local_data(cache)
-            print(f"  已從快取清除 {len(stale)} 筆。")
+        EXPECTED_MIN_COUNT = 50 
+        if len(scraped_names) > EXPECTED_MIN_COUNT:
+            stale = [n for n in list(cache.keys()) if n not in scraped_names]
+            if stale:
+                print(f"\n🗑️ 發現 {len(stale)} 間已從百名店移除的店家：")
+                for n in stale:
+                    print(f"  - {n}")
+                    del cache[n]
+                save_local_data(cache)
+                print(f"  已從快取清除 {len(stale)} 筆。")
+            else:
+                print("✅ 快取無過期資料，無需移除。")
         else:
-            print("✅ 快取無過期資料，無需移除。")
+            print(f"⚠️ 警告：本次僅抓取到 {len(scraped_names)} 家店，低於安全門檻，跳過清除落榜名單以保護快取！")
 
         print("✅ 所有新資料與座標已蒐集完畢！")
 
