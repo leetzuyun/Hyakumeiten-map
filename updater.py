@@ -13,6 +13,7 @@ from dotenv import load_dotenv
 from requests.adapters import HTTPAdapter
 from urllib3.util.retry import Retry
 from urllib3.poolmanager import PoolManager
+from datetime import datetime, timezone, timedelta
 import ssl
 
 # --- 強制 TLS 1.2+ 的設定 ---
@@ -63,7 +64,9 @@ def save_local_data(data_dict):
     if not data_dict: return
     
     # 確保資料夾存在
-    os.makedirs(os.path.dirname(DATA_FILE_PQ), exist_ok=True)
+    directory = os.path.dirname(DATA_FILE_PQ)
+    if directory:
+        os.makedirs(directory, exist_ok=True)
     
     flat_list = []
     for name, info in data_dict.items():
@@ -132,6 +135,13 @@ def export_to_json():
 
         category_url = str(row.get('category_url', ''))
         category = str(row.get('category', category_url.rstrip('/').split('/')[-1] if category_url else '其他'))
+        # 🟢 增加這一段：確保 URL 是有效的字串，若為空則給予預設值
+        t_url = row.get('tabelog_url')
+        # 如果不是字串，或者它是 'nan' 字串，直接賦予預設值
+        if pd.isna(t_url) or str(t_url).lower() == 'nan' or not str(t_url).startswith('http'):
+            final_t_url = 'https://tabelog.com/'
+        else:
+            final_t_url = str(t_url)
 
         records.append({
             'name':           str(row.get('name', '')),
@@ -142,13 +152,22 @@ def export_to_json():
             'reviews':        int(row.get('reviews', 0)) if is_valid(row.get('reviews')) else 0,
             'address':        str(row.get('tabelog_address', '')),
             'category':       category,
-            'tabelog_url':    str(row.get('tabelog_url', '')),
+            'tabelog_url':    final_t_url,
         })
 
+    JST = timezone(timedelta(hours=9))
+    updated_str = datetime.now(JST).strftime('%Y/%m/%d %H:%M JST')
+
+    output = {
+        'updated': updated_str,
+        'records': records,
+    }
+
     with open(OUTPUT_FILE, 'w', encoding='utf-8') as f:
-        json.dump(records, f, ensure_ascii=False, indent=2)
+        json.dump(output, f, ensure_ascii=False, indent=2)
 
     print(f"✅ JSON 轉換完成！共匯出 {len(records)} 筆，略過 {skipped} 筆（無座標）。")
+    print(f"   更新時間：{updated_str}")
     print(f"   輸出檔案：{OUTPUT_FILE}")
 
 
@@ -170,10 +189,7 @@ def run_crawler(force=False):
             
             cat_resp = session.get(url, headers=headers, timeout=15)
             cat_soup = BeautifulSoup(cat_resp.text, 'html.parser')
-            # imgs = cat_soup.find_all('img', alt=True)
-            
-            # for img in imgs:
-            #     name = zen_to_han(img['alt'].strip())
+
             name_tags = cat_soup.select('.hyakumeiten-shop__name')
 
             for name_tag in name_tags:
@@ -250,7 +266,7 @@ def run_crawler(force=False):
 
 
 if __name__ == "__main__":
-    # 步驟 1: 執行爬蟲與快取更新 (若需要強制重新抓取可改為 run_crawler(force=True))
+    # 若需要強制重新抓取可改為 run_crawler(force=True)
     run_crawler(force=False)
     
     export_to_json()
