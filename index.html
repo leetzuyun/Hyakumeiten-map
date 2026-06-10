@@ -91,7 +91,7 @@ html, body {
 .brand-dot { color: var(--accent); }
 
 /* Category Dropdown */
-#cat-dropdown-wrap { position: relative; flex-shrink: 0; z-index: 2001}
+#cat-dropdown-wrap { position: relative; flex-shrink: 0; z-index: 2001;min-width: 110px;}
 
 #cat-btn {
   display: flex;
@@ -108,7 +108,7 @@ html, body {
   white-space: nowrap;
   font-family: var(--font);
   transition: border-color 0.15s, background 0.15s;
-  max-width: 130px;
+  max-width: 160px;
 }
 #cat-btn:focus { outline: none; }
 #cat-btn.open { border-color: var(--accent); background: var(--accent-lt); }
@@ -167,7 +167,7 @@ html, body {
 .cat-option-count { font-size: 11px; color: var(--muted); font-weight: 400; margin-left: auto; }
 
 /* Search */
-#search-wrap { flex: 1; position: relative; min-width: 0; }
+#search-wrap { flex: 1; position: relative; min-width: 0; max-width: 150px;}
 #search {
   width: 100%;
   background: var(--panel);
@@ -205,10 +205,17 @@ html, body {
 
 .popup-card { padding: 13px 13px 11px; font-family: var(--font); }
 .popup-name { font-size: 14px; font-weight: 700; color: var(--text); line-height: 1.35; margin-bottom: 5px; }
+.popup-cat-row {
+  display: flex; align-items: center; gap: 6px; margin-bottom: 8px;
+}
 .popup-cat {
   display: inline-flex; align-items: center; gap: 3px;
   background: var(--accent-lt); color: var(--accent);
-  font-size: 10px; padding: 2px 8px; border-radius: 10px; margin-bottom: 8px; font-weight: 600;
+  font-size: 10px; padding: 2px 8px; border-radius: 10px; font-weight: 600;
+}
+.popup-price {
+  font-size: 11px; font-weight: 700; color: var(--accent2);
+  letter-spacing: 0.05em;
 }
 .popup-addr { font-size: 11px; color: var(--text-sub); line-height: 1.45; margin-bottom: 9px; }
 .popup-comment {
@@ -229,7 +236,7 @@ html, body {
   font-family: var(--font); transition: opacity 0.15s;
 }
 .popup-btn:active { opacity: 0.7; }
-.popup-btn-nav { background: var(--accent); color: #fff; }
+.popup-btn-nav { background: var(--panel); color: #fff; }
 .popup-btn-tab { background: var(--panel); border: 1px solid var(--border-md); color: var(--text-sub); }
 
 /* Bottom Sheet */
@@ -334,7 +341,7 @@ html, body {
 <body>
 
 <div id="loading">
-  <div class="loader-emoji">🍜</div>
+  <div class="loader-emoji">🇯🇵</div>
   <div class="loader-text">載入百名店資料中…</div>
 </div>
 
@@ -344,7 +351,7 @@ html, body {
 <div id="app">
   <div id="header">
     <div id="header-left">
-    <div id="header-title">🍴 百名店<span class="brand-dot">•</span>地圖</div>
+    <div id="header-title">🇯🇵 百名店<span class="brand-dot">•</span>地圖</div>
     <div id="header-updated">–</div>
   </div>
 
@@ -387,19 +394,71 @@ html, body {
 <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet.markercluster/1.5.3/leaflet.markercluster.min.js"></script>
 
 <script>
-const CAT_EMOJI = {
-  'すし':'🍣','ラーメン':'🍜','焼き鳥':'🍗','焼肉':'🥩',
-  '天ぷら':'🍤','日本料理':'🏯','懐石・会席料理':'🎎',
-  'フレンチ':'🥐','イタリアン':'🍝','中華料理':'🥢',
-  'ステーキ':'🥩','蕎麦':'🍜','うどん':'🍜','カレー':'🍛',
-  'スペイン料理':'🥘','バー・お酒':'🍶','パン':'🥐','スイーツ':'🍰',
-  '居酒屋':'🏮','鍋':'🫕'
-};
-function catEmoji(cat) { return CAT_EMOJI[cat] || '🍴'; }
+// ── 分類定義：label = 下拉顯示名稱, icon = emoji, match = category slug 比對字串（用 | 分隔）──
+const MENU_CATEGORIES = [
+  { label: '亞洲風味料理', icon: '🌏', match: 'asia_ethnic' },
+  { label: '酒吧', icon: '🥂', match: 'bar' },
+  { label: '麵包店', icon: '🥐', match: 'bread' },
+  { label: '咖啡館', icon: '☕', match: 'cafe' },
+  { label: '中華料理', icon: '🥢', match: 'chinese' },
+  { label: '創作料理', icon: '🍽️', match: 'creative_innovative' },
+  { label: '咖哩', icon: '🍛', match: 'curry' },
+  { label: '法式料理', icon: '🇫🇷', match: 'french' },
+  { label: '餃子', icon: '🥟', match: 'gyoza' },
+  { label: '漢堡', icon: '🍔', match: 'hamburger' },
+  { label: '冰淇淋', icon: '🍨', match: 'ice_gelato' },
+  { label: '義大利料理', icon: '🇮🇹', match: 'italian' },
+  { label: '居酒屋', icon: '🏮', match: 'izakaya' },
+  { label: '日式料理', icon: '🇯🇵', match: 'japanese' },
+  { label: '喫茶店', icon: '🍵', match: 'kissaten' },
+  { label: '御好燒', icon: '🫓', match: 'okonomiyaki' },
+  { label: '披薩', icon: '🍕', match: 'pizza' },
+  { label: '拉麵', icon: '🍜', match: 'ramen' },
+  { label: '食堂', icon: '🍚', match: 'shokudo' },
+  { label: '蕎麥麵', icon: '🌾', match: 'soba'},
+  { label: '西班牙料理', icon: '🇪🇸', match: 'spanish' },
+  { label: '牛排', icon: '🥩', match: 'steak' },
+  { label: '壽喜燒', icon: '🍲', match: 'sukiyaki_shabushabu' },
+  { label: '壽司', icon: '🍣', match: 'sushi' },
+  { label: '甜點', icon: '🍰', match: 'sweets' },
+  { label: '立飲', icon: '🍺', match: 'tachinomi' },
+  { label: '天婦羅', icon: '🍤', match: 'tempura' },
+  { label: '炸豬排', icon: '🐖', match: 'tonkatsu' },
+  { label: '燒鳥', icon: '🐔', match: 'toriryori' },
+  { label: '烏龍麵', icon: '🍥', match: 'udon' },
+  { label: '鰻魚料理', icon: '🍱', match: 'unagi' },
+  { label: '和菓子', icon: '🍡', match: 'wagashi' },
+  { label: '燒肉', icon: '🥓', match: 'yakiniku' },
+  { label: '串燒', icon: '🍢', match: 'yakitori' },
+  { label: '(日式)洋食', icon: '🍝', match: 'yoshoku' },
+];
+
+// category slug → label（用 match 比對）
+function catLabel(cat) {
+  if (!cat) return '其他';
+  var c = cat.toLowerCase();
+  for (var i = 0; i < MENU_CATEGORIES.length; i++) {
+    var patterns = MENU_CATEGORIES[i].match.split('|');
+    for (var j = 0; j < patterns.length; j++) {
+      if (c.includes(patterns[j])) return MENU_CATEGORIES[i].label;
+    }
+  }
+  return '其他';
+}
+
+// category slug 或 label → icon
+function catEmoji(cat) {
+  if (!cat) return '🍴';
+  var lbl = catLabel(cat);
+  for (var i = 0; i < MENU_CATEGORIES.length; i++) {
+    if (MENU_CATEGORIES[i].label === lbl) return MENU_CATEGORIES[i].icon;
+  }
+  return '🍴';
+}
 
 // CartoDB Positron
 const map = L.map('map', { zoomControl: false, attributionControl: false, tap: true });
-L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
+L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
   attribution: '© OpenStreetMap © CARTO', subdomains: 'abcd', maxZoom: 19,
 }).addTo(map);
 L.control.zoom({ position: 'bottomright' }).addTo(map);
@@ -431,9 +490,15 @@ function popupHTML(d) {
   const tabUrl = d.tabelog_url || 'https://tabelog.com/';
   const tScore = d.tabelog_score && d.tabelog_score !== '無' ? d.tabelog_score : '—';
   const gScore = d.google_rating && d.google_rating !== '無' ? d.google_rating : '—';
+  var priceStr = (typeof d.price_level === 'number') ? '¥'.repeat(d.price_level + 1) : null;
   return '<div class="popup-card">' +
     '<div class="popup-name">' + d.name + '</div>' +
-    '<div class="popup-cat">' + catEmoji(d.category) + ' ' + d.category + '</div>' +
+    '<div class="popup-cat-row">' +
+      // 如果要讓地圖資料卡顯示分類跟清單一樣，改成如下
+      '<div class="popup-cat">' + catEmoji(d.category) + ' ' + catLabel(d.category) + '</div>' +
+      // '<div class="popup-cat">' + catEmoji(d.category) + ' ' + d.category + '</div>' +
+      (priceStr ? '<div class="popup-price">' + priceStr + '</div>' : '') +
+    '</div>' +
     '<div class="popup-addr">📍 ' + (d.address || '地址未知') + '</div>' +
     '<div class="popup-scores">' +
       '<div class="popup-score-item"><div class="popup-score-label">TABELOG</div><div class="popup-score-val">' + tScore + '</div></div>' +
@@ -441,8 +506,8 @@ function popupHTML(d) {
     '</div>' +
     (d.comment ? '<div class="popup-comment">💬 ' + d.comment + '</div>' : '') +
     '<div class="popup-actions">' +
-      '<a class="popup-btn popup-btn-nav" href="' + navUrl + '" target="_blank">🧭 導航</a>' +
-      '<a class="popup-btn popup-btn-tab" href="' + tabUrl + '" target="_blank">📖 Tabelog</a>' +
+      '<a class="popup-btn popup-btn-nav" href="' + navUrl + '" target="_blank">Google maps 導航</a>' +
+      '<a class="popup-btn popup-btn-tab" href="' + tabUrl + '" target="_blank">Tabelog</a>' +
     '</div></div>';
 }
 
@@ -473,7 +538,9 @@ function renderList(data) {
       '<div class="list-icon">' + catEmoji(d.category) + '</div>' +
       '<div class="list-info">' +
         '<div class="list-name">' + d.name + '</div>' +
-        '<div class="list-meta">' + d.category + ' · ' + addr.substring(0,28) + (addr.length>28?'…':'') + '</div>' +
+        // 如果要讓地圖資料卡顯示分類跟原本一樣，改成如下
+        '<div class="list-meta">' + catLabel(d.category) + ' · ' + addr.substring(0,28) + (addr.length>28?'…':'') + '</div>' +
+        //'<div class="list-meta">' + d.category + ' · ' + addr.substring(0,28) + (addr.length>28?'…':'') + '</div>' +
         (d.comment ? '<div class="list-comment">💬 ' + d.comment + '</div>' : '') +
       '</div>' +
       '<div class="list-score">' + tScore + '</div>';
@@ -490,7 +557,7 @@ function renderList(data) {
 function applyFilter() {
   var q = searchQuery.toLowerCase();
   filteredData = allData.filter(function(d) {
-    var catOK  = activeCategory === 'all' || d.category === activeCategory;
+    var catOK  = activeCategory === 'all' || catLabel(d.category) === activeCategory;
     var nameOK = !q || d.name.toLowerCase().includes(q) || (d.address||''). toLowerCase().includes(q);
     return catOK && nameOK;
   });
@@ -506,38 +573,54 @@ function applyFilter() {
 }
 
 function buildCategoryDropdown(data) {
+  // 用 catLabel 分組統計
   var catCount = {};
-  data.forEach(function(d) { catCount[d.category] = (catCount[d.category]||0) + 1; });
-  var cats = Object.keys(catCount).sort();
-  var catList   = document.getElementById('cat-list');
-  var catSearch = document.getElementById('cat-search');
-  var catBtn    = document.getElementById('cat-btn');
-  var catLabel  = document.getElementById('cat-btn-label');
-  var dropdown  = document.getElementById('cat-dropdown');
-  var backdrop  = document.getElementById('cat-backdrop');
+  data.forEach(function(d) {
+    var lbl = catLabel(d.category);
+    catCount[lbl] = (catCount[lbl] || 0) + 1;
+  });
+
+  // 按 MENU_CATEGORIES 定義順序排，有資料的才顯示，最後加「其他」
+  var orderedCats = MENU_CATEGORIES
+    .map(function(mc) { return mc.label; })
+    .filter(function(lbl) { return catCount[lbl]; });
+  if (catCount['其他']) orderedCats.push('其他');
+
+  var catList    = document.getElementById('cat-list');
+  var catSearch  = document.getElementById('cat-search');
+  var catBtn     = document.getElementById('cat-btn');
+  var catBtnLabel = document.getElementById('cat-btn-label');
+  var dropdown   = document.getElementById('cat-dropdown');
+  var backdrop   = document.getElementById('cat-backdrop');
+
+  function getIcon(lbl) {
+    var mc = MENU_CATEGORIES.find(function(m) { return m.label === lbl; });
+    return mc ? mc.icon : '🍴';
+  }
 
   function buildOptions(filterText) {
     catList.innerHTML = '';
-    if (!filterText || '全部'.includes(filterText)) {
+    var ft = filterText.toLowerCase();
+    if (!ft || '全部分類'.includes(ft)) {
       var all = document.createElement('div');
-      all.className = 'cat-option' + (activeCategory==='all'?' selected':'');
+      all.className = 'cat-option' + (activeCategory === 'all' ? ' selected' : '');
       all.innerHTML = '<span class="cat-option-emoji">🍴</span><span class="cat-option-name">全部分類</span><span class="cat-option-count">' + data.length + '</span>';
       all.addEventListener('click', function() { selectCat('all', '全部分類'); });
       catList.appendChild(all);
     }
-    cats.forEach(function(cat) {
-      if (filterText && !cat.includes(filterText)) return;
+    orderedCats.forEach(function(lbl) {
+      if (ft && !lbl.toLowerCase().includes(ft)) return;
       var opt = document.createElement('div');
-      opt.className = 'cat-option' + (activeCategory===cat?' selected':'');
-      opt.innerHTML = '<span class="cat-option-emoji">' + catEmoji(cat) + '</span><span class="cat-option-name">' + cat + '</span><span class="cat-option-count">' + catCount[cat] + '</span>';
-      opt.addEventListener('click', (function(c) { return function() { selectCat(c, catEmoji(c)+' '+c); }; })(cat));
+      opt.className = 'cat-option' + (activeCategory === lbl ? ' selected' : '');
+      opt.innerHTML = '<span class="cat-option-emoji">' + getIcon(lbl) + '</span><span class="cat-option-name">' + lbl + '</span><span class="cat-option-count">' + catCount[lbl] + '</span>';
+      opt.addEventListener('click', (function(l) { return function() { selectCat(l, getIcon(l) + ' ' + l); }; })(lbl));
       catList.appendChild(opt);
     });
   }
 
-  function selectCat(cat, label) {
-    activeCategory = cat;
-    catLabel.textContent = label;
+  function selectCat(lbl, displayLabel) {
+    activeCategory = lbl;
+    catBtnLabel.textContent = displayLabel;
     closeDrop();
     applyFilter();
     if (filteredData.length > 0) fitToData(filteredData);
@@ -641,10 +724,6 @@ async function init() {
   // 需求1：過濾停業店家
   data = data.filter(function(d) { return d.comment !== '停業'; });
 
-  // 需求2：顯示更新時間
-  if (data._updated || (Array.isArray(data) === false && data.updated)) {
-    // 包在 wrapper 物件裡的格式
-  }
   allData = data; filteredData = data;
   buildCategoryDropdown(data);
   renderMarkers(data); renderList(data);
