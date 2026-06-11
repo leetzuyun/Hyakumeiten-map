@@ -54,7 +54,7 @@ python updater.py
 接下來再記得 commit 到這個 repo 來才能保持在最新的資料庫
 
 ### Step 2：在手機上使用
-1. 連線到 https://Hyakumeiten.netlify.app
+1. 連線到 https://hakyumeiten.netlify.app/
 2. iOS Safari：點「分享」→「加入主畫面」，變成 app 圖示
 3. 大功告成！
 ---
